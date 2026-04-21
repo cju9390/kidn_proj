@@ -215,16 +215,54 @@ def generate_patients(n=20, seed=42):
 
 patients_df = generate_patients()
 
+pages = {"홈": "🏠", "마이": "👤", "대시보드": "🔍", "원무": "📋", "일정": "📅"}
+
+# ══════════════════════════════════════════════════════════
+# 사이드바 (항상 렌더링 — auth/main 공통)
+# ══════════════════════════════════════════════════════════
+with st.sidebar:
+    if st.session_state.logged_in:
+        st.markdown("""
+        <div style='padding:20px 0 12px; text-align:center;'>
+            <div style='width:44px; height:44px; border-radius:50%; background:#3182ce;
+                        display:flex; align-items:center; justify-content:center;
+                        font-size:1.2rem; margin:0 auto 8px;'>👤</div>
+            <div style='font-size:0.7rem; color:#718096;'>홍길동</div>
+        </div>
+        <hr style='border-color:#2d3748; margin:0 0 12px 0;'>
+        """, unsafe_allow_html=True)
+
+        for name, icon in pages.items():
+            is_active = st.session_state.page == name
+            if is_active:
+                st.markdown(
+                    f"<div style='background:rgba(255,255,255,0.15); color:white; font-weight:600;"
+                    f"border-radius:8px; padding:10px 8px; text-align:center; font-size:0.82rem;"
+                    f"margin-bottom:2px;'>{icon} {name}</div>",
+                    unsafe_allow_html=True)
+            else:
+                if st.button(f"{icon} {name}", key=f"nav_{name}", use_container_width=True):
+                    st.session_state.page = name
+                    st.rerun()
+
+        st.markdown("<hr style='border-color:#2d3748; margin:12px 0;'>", unsafe_allow_html=True)
+        if st.button("🚪 로그아웃", key="logout_btn", use_container_width=True):
+            st.session_state.logged_in = False
+            st.session_state.auth_page = "login"
+            st.rerun()
+    else:
+        st.markdown("""
+        <div style='padding:40px 16px; text-align:center;'>
+            <div style='font-size:2.4rem;'>🫘</div>
+            <div style='font-size:0.8rem; color:#718096; margin-top:8px; font-weight:600;'>Renal AKI CDSS</div>
+        </div>
+        """, unsafe_allow_html=True)
+
 
 # ══════════════════════════════════════════════════════════
 # AUTH PAGES (로그인 / 회원가입)
 # ══════════════════════════════════════════════════════════
 if not st.session_state.logged_in:
-    # 사이드바 숨기기
-    st.markdown("""<style>
-    section[data-testid="stSidebar"] { display:none !important; }
-    [data-testid="collapsedControl"]  { display:none !important; }
-    </style>""", unsafe_allow_html=True)
 
     # ── 로그인 ─────────────────────────────────────────────
     if st.session_state.auth_page == "login":
@@ -407,42 +445,6 @@ if not st.session_state.logged_in:
                     st.rerun()
 
     st.stop()
-
-
-# ══════════════════════════════════════════════════════════
-# 사이드바 네비게이션 (로그인 후)
-# ══════════════════════════════════════════════════════════
-pages = {"홈": "🏠", "마이": "👤", "대시보드": "🔍", "원무": "📋", "일정": "📅"}
-
-with st.sidebar:
-    st.markdown("""
-    <div style='padding:20px 0 12px; text-align:center;'>
-        <div style='width:44px; height:44px; border-radius:50%; background:#3182ce;
-                    display:flex; align-items:center; justify-content:center;
-                    font-size:1.2rem; margin:0 auto 8px;'>👤</div>
-        <div style='font-size:0.7rem; color:#718096;'>홍길동</div>
-    </div>
-    <hr style='border-color:#2d3748; margin:0 0 12px 0;'>
-    """, unsafe_allow_html=True)
-
-    for name, icon in pages.items():
-        is_active = st.session_state.page == name
-        if is_active:
-            st.markdown(
-                f"<div style='background:rgba(255,255,255,0.15); color:white; font-weight:600;"
-                f"border-radius:8px; padding:10px 8px; text-align:center; font-size:0.82rem;"
-                f"margin-bottom:2px;'>{icon} {name}</div>",
-                unsafe_allow_html=True)
-        else:
-            if st.button(f"{icon} {name}", key=f"nav_{name}", use_container_width=True):
-                st.session_state.page = name
-                st.rerun()
-
-    st.markdown("<hr style='border-color:#2d3748; margin:12px 0;'>", unsafe_allow_html=True)
-    if st.button("🚪 로그아웃", key="logout_btn", use_container_width=True):
-        st.session_state.logged_in = False
-        st.session_state.auth_page = "login"
-        st.rerun()
 
 
 # ── 페이지 라우팅 ──────────────────────────────────────────
