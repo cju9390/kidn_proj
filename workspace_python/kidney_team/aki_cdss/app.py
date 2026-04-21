@@ -6,7 +6,7 @@ from datetime import datetime
 
 st.set_page_config(
     page_title="Renal AKI CDSS",
-    page_icon="🫘",
+    page_icon=None,
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -39,7 +39,6 @@ section[data-testid="stSidebar"] .stButton > button:hover {
 .stat-card { background:white; border-radius:12px; padding:20px; box-shadow:0 1px 4px rgba(0,0,0,0.08); display:flex; justify-content:space-between; align-items:center; }
 .stat-num { font-size:2rem; font-weight:700; color:#1a202c; line-height:1; }
 .stat-label { font-size:0.8rem; color:#718096; margin-top:4px; }
-.stat-icon { font-size:1.6rem; }
 .shortcut-card { background:white; border-radius:12px; padding:28px; box-shadow:0 1px 4px rgba(0,0,0,0.08); cursor:pointer; height:160px; position:relative; }
 .shortcut-card:hover { box-shadow:0 4px 16px rgba(0,0,0,0.12); }
 .shortcut-card.active { border:2px solid #48bb78; }
@@ -215,7 +214,7 @@ def generate_patients(n=20, seed=42):
 
 patients_df = generate_patients()
 
-pages = {"홈": "🏠", "마이": "👤", "대시보드": "🔍", "원무": "📋", "일정": "📅"}
+pages = ["홈", "마이", "대시보드", "원무", "일정"]
 
 # ══════════════════════════════════════════════════════════
 # 사이드바 (항상 렌더링 — auth/main 공통)
@@ -226,34 +225,33 @@ with st.sidebar:
         <div style='padding:20px 0 12px; text-align:center;'>
             <div style='width:44px; height:44px; border-radius:50%; background:#3182ce;
                         display:flex; align-items:center; justify-content:center;
-                        font-size:1.2rem; margin:0 auto 8px;'>👤</div>
+                        font-size:0.85rem; font-weight:700; color:white; margin:0 auto 8px;'>HG</div>
             <div style='font-size:0.7rem; color:#718096;'>홍길동</div>
         </div>
         <hr style='border-color:#2d3748; margin:0 0 12px 0;'>
         """, unsafe_allow_html=True)
 
-        for name, icon in pages.items():
+        for name in pages:
             is_active = st.session_state.page == name
             if is_active:
                 st.markdown(
                     f"<div style='background:rgba(255,255,255,0.15); color:white; font-weight:600;"
                     f"border-radius:8px; padding:10px 8px; text-align:center; font-size:0.82rem;"
-                    f"margin-bottom:2px;'>{icon} {name}</div>",
+                    f"margin-bottom:2px;'>{name}</div>",
                     unsafe_allow_html=True)
             else:
-                if st.button(f"{icon} {name}", key=f"nav_{name}", use_container_width=True):
+                if st.button(name, key=f"nav_{name}", use_container_width=True):
                     st.session_state.page = name
                     st.rerun()
 
         st.markdown("<hr style='border-color:#2d3748; margin:12px 0;'>", unsafe_allow_html=True)
-        if st.button("🚪 로그아웃", key="logout_btn", use_container_width=True):
+        if st.button("로그아웃", key="logout_btn", use_container_width=True):
             st.session_state.logged_in = False
             st.session_state.auth_page = "login"
             st.rerun()
     else:
         st.markdown("""
         <div style='padding:40px 16px; text-align:center;'>
-            <div style='font-size:2.4rem;'>🫘</div>
             <div style='font-size:0.8rem; color:#718096; margin-top:8px; font-weight:600;'>Renal AKI CDSS</div>
         </div>
         """, unsafe_allow_html=True)
@@ -297,12 +295,12 @@ if not st.session_state.logged_in:
         with mid:
             st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
             with st.form("login_form"):
-                # 아바타 + 제목
+                # 제목
                 st.markdown("""
                 <div style='text-align:center; margin-bottom:20px;'>
                     <div style='width:58px; height:58px; border-radius:50%; background:#1e2235;
                                 display:inline-flex; align-items:center; justify-content:center;
-                                font-size:1.5rem; margin-bottom:14px;'>👤</div>
+                                font-size:1rem; font-weight:700; color:white; margin-bottom:14px;'>AKI</div>
                     <div style='font-size:1.3rem; font-weight:700; color:#1a202c;'>
                         로그인 &nbsp;▶
                     </div>
@@ -469,12 +467,12 @@ if page == "홈":
 
     sc1, sc2, sc3, sc4 = st.columns(4)
     stats = [
-        ("오늘의 입원 환자", "142", "+3", "👥", "#3182ce"),
-        ("중환자실 재실", "28", "FULL", "📈", "#e53e3e"),
-        ("신규 원무 등록", "45", "", "📄", "#38a169"),
-        ("CDSS 활성 알림", "12", "주의", "🔔", "#dd6b20"),
+        ("오늘의 입원 환자", "142", "+3", "#3182ce"),
+        ("중환자실 재실", "28", "FULL", "#e53e3e"),
+        ("신규 원무 등록", "45", "", "#38a169"),
+        ("CDSS 활성 알림", "12", "주의", "#dd6b20"),
     ]
-    for col, (label, num, badge, icon, color) in zip([sc1, sc2, sc3, sc4], stats):
+    for col, (label, num, badge, color) in zip([sc1, sc2, sc3, sc4], stats):
         with col:
             if badge == "FULL":
                 badge_html = "<span style='background:#fed7d7;color:#c53030;font-size:0.65rem;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px;'>FULL</span>"
@@ -490,7 +488,6 @@ if page == "홈":
                     <div class='stat-label'>{label}</div>
                     <div class='stat-num' style='color:{color};'>{num}{badge_html}</div>
                 </div>
-                <div class='stat-icon'>{icon}</div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -501,7 +498,6 @@ if page == "홈":
     with lk1:
         st.markdown("""
         <div class='shortcut-card'>
-            <div style='font-size:1.6rem;color:#3182ce;margin-bottom:12px;'>📈</div>
             <div style='font-size:1rem;font-weight:600;color:#1a202c;margin-bottom:8px;'>CDSS 환자 대시보드</div>
             <div style='font-size:0.82rem;color:#718096;line-height:1.5;'>
                 AI 기반 신장 이식 환자 중환자실 급성 신손상(AKI) 조기 예측 및 임상 의사 결정 지원 시스템으로 이동합니다.
@@ -509,14 +505,13 @@ if page == "홈":
             <div style='position:absolute;top:20px;right:20px;color:#a0aec0;'>›</div>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("→ 대시보드 이동", key="home_to_dash", use_container_width=True):
+        if st.button("대시보드 이동", key="home_to_dash", use_container_width=True):
             st.session_state.page = "대시보드"
             st.rerun()
 
     with lk2:
         st.markdown("""
         <div class='shortcut-card active'>
-            <div style='font-size:1.6rem;color:#38a169;margin-bottom:12px;'>📋</div>
             <div style='font-size:1rem;font-weight:600;color:#1a202c;margin-bottom:8px;'>환자 원무 등록</div>
             <div style='font-size:0.82rem;color:#718096;line-height:1.5;'>
                 신규 환자 정보 등록, 진료과 배정 및 입원 수속을 위한 원무 관리 시스템으로 이동합니다.
@@ -524,7 +519,7 @@ if page == "홈":
             <div style='position:absolute;top:20px;right:20px;color:#a0aec0;'>›</div>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("→ 원무 이동", key="home_to_admin", use_container_width=True):
+        if st.button("원무 이동", key="home_to_admin", use_container_width=True):
             st.session_state.page = "원무"
             st.rerun()
 
@@ -669,15 +664,15 @@ elif page == "대시보드":
     with sub_nav:
         st.markdown("""
         <div class='card' style='padding:12px 8px;'>
-            <div class='nav-btn active'>🏠 홈</div>
-            <div class='nav-btn'>📄 종합 정보</div>
-            <div class='nav-btn'>🔍 환자 검색</div>
-            <div class='nav-btn'>📝 문제 목록</div>
-            <div class='nav-btn'>💊 처방 약물</div>
-            <div class='nav-btn'>🧪 검사 결과</div>
-            <div class='nav-btn'>🩻 영상 의학</div>
-            <div class='nav-btn'>📋 간호 계획</div>
-            <div class='nav-btn'>❤️ 카디오 필터</div>
+            <div class='nav-btn active'>홈</div>
+            <div class='nav-btn'>종합 정보</div>
+            <div class='nav-btn'>환자 검색</div>
+            <div class='nav-btn'>문제 목록</div>
+            <div class='nav-btn'>처방 약물</div>
+            <div class='nav-btn'>검사 결과</div>
+            <div class='nav-btn'>영상 의학</div>
+            <div class='nav-btn'>간호 계획</div>
+            <div class='nav-btn'>카디오 필터</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -711,7 +706,7 @@ elif page == "대시보드":
 
         # AKI 예측
         st.markdown("<div class='card'>", unsafe_allow_html=True)
-        st.markdown("<div class='sec-title'>🫘 AKI 발생 예측 (다중 시간대)</div>", unsafe_allow_html=True)
+        st.markdown("<div class='sec-title'>AKI 발생 예측 (다중 시간대)</div>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:0.78rem;color:#718096;margin-bottom:12px;'>XGBoost · MIMIC-IV 기반 · KDIGO 2012 기준 | 더미 예측값</div>", unsafe_allow_html=True)
         horizons = ["6시간", "12시간", "24시간", "48시간"]
         probs    = [float(p["AKI_6h"]), float(p["AKI_12h"]), float(p["AKI_24h"]), float(p["AKI_48h"])]
@@ -822,7 +817,7 @@ elif page == "대시보드":
                                            zeroline=True, zerolinecolor="#e2e8f0"),
                                 yaxis=dict(showgrid=False), font=dict(size=11))
         st.plotly_chart(fig_shap, use_container_width=True)
-        st.markdown("<div style='font-size:0.75rem;color:#a0aec0;'>🔴 위험 상승 기여 &nbsp;|&nbsp; 🔵 위험 감소 기여 &nbsp;|&nbsp; ※ 더미 SHAP값</div>",
+        st.markdown("<div style='font-size:0.75rem;color:#a0aec0;'>빨강: 위험 상승 기여 &nbsp;|&nbsp; 파랑: 위험 감소 기여 &nbsp;|&nbsp; ※ 더미 SHAP값</div>",
                     unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -833,13 +828,13 @@ elif page == "대시보드":
         if risk_v >= 0.7:
             st.markdown(f"""
             <div class='alert-crit'>
-                <div style='font-size:0.8rem;font-weight:600;color:#c53030;'>🚨 약물 상호작용 경고</div>
+                <div style='font-size:0.8rem;font-weight:600;color:#c53030;'>약물 상호작용 경고</div>
                 <div style='font-size:0.77rem;color:#742a2a;margin-top:4px;'>
                     처방된 와파린과 이부프로펜 간의 잠재적 상호작용. 출혈 위험 증가.
                 </div>
             </div>
             <div class='alert-warn'>
-                <div style='font-size:0.8rem;font-weight:600;color:#c05621;'>🔄 중복 처방 알림</div>
+                <div style='font-size:0.8rem;font-weight:600;color:#c05621;'>중복 처방 알림</div>
                 <div style='font-size:0.77rem;color:#7b341e;margin-top:4px;'>
                     최근 48시간 이내 복부/골반 CT 스캔이 이미 처방됨.
                 </div>
@@ -848,7 +843,7 @@ elif page == "대시보드":
         elif risk_v >= 0.4:
             st.markdown(f"""
             <div class='alert-warn'>
-                <div style='font-size:0.8rem;font-weight:600;color:#c05621;'>⚠️ AKI 위험 중등도</div>
+                <div style='font-size:0.8rem;font-weight:600;color:#c05621;'>AKI 위험 중등도</div>
                 <div style='font-size:0.77rem;color:#7b341e;margin-top:4px;'>
                     AKI 24h 예측 {float(p["AKI_24h"])*100:.1f}%. 4시간 내 재평가 권장.
                 </div>
@@ -857,7 +852,7 @@ elif page == "대시보드":
         else:
             st.markdown("""
             <div class='alert-info'>
-                <div style='font-size:0.8rem;font-weight:600;color:#2b6cb0;'>✅ 현재 안정적</div>
+                <div style='font-size:0.8rem;font-weight:600;color:#2b6cb0;'>현재 안정적</div>
                 <div style='font-size:0.77rem;color:#2c5282;margin-top:4px;'>
                     위험 지표 정상 범위. 정기 모니터링 유지.
                 </div>
@@ -939,8 +934,6 @@ elif page == "원무":
         st.markdown("""
         <div class='card' style='padding:12px 8px;'>
             <div style='display:flex;align-items:center;gap:8px;padding:8px;margin-bottom:8px;'>
-                <div style='width:32px;height:32px;border-radius:50%;background:#3182ce;
-                            display:flex;align-items:center;justify-content:center;color:white;font-size:0.8rem;'>🏥</div>
                 <div style='font-size:0.8rem;font-weight:600;color:#1a202c;'>환자 원무 관리 시스템</div>
             </div>
             <div class='nav-btn active'>신규 환자 등록</div>
