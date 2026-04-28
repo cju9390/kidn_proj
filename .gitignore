@@ -297,6 +297,52 @@ workspace_python/ex_milvus/essential/
 workspace_python/AI-education/
 
 # =====================
+# kidney 프로젝트 외 최상위 폴더/파일 제외
+# =====================
+workspace-DBeaver sql/
+workspace-mimic/
+workspace_db/
+workspace_html/
+workspace_mysql/
+IRB 관련 서류 파일/
+mimic-code-main/
+work_download/
+건양대학교병원 받은 파일/
+새 폴더/
+README.md
+1_202602131535.csv
+test 20260121.txt
+
+# workspace_python 내 kidney_team 제외 폴더 제외
+workspace_python/aki_cdss/
+workspace_python/base/
+workspace_python/datasets/
+workspace_python/disk_analyzer.py
+workspace_python/disk_analyzer_deep.py
+workspace_python/ex_django/
+workspace_python/ex_fastAPI/
+workspace_python/ex_flask/
+workspace_python/ex_milvus/
+workspace_python/ex_ml/
+workspace_python/ex_streamlit/
+workspace_python/kd/
+workspace_python/mbti_web/
+workspace_python/medical_image/
+workspace_python/medical_prep/
+workspace_python/mimic/
+workspace_python/mobile-search-basic/
+workspace_python/requirements.txt
+workspace_python/social_mbti/
+workspace_python/socket-basic/
+workspace_python/trans_fastapi/
+workspace_python/web-chat/
+workspace_python/week1/
+workspace_python/week2/
+workspace_python/week3/
+workspace_python/week4/
+workspace_python/week5/
+
+# =====================
 # 기타
 # =====================
 films.json
