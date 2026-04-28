@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CDSS — Clinical Decision Support System</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      color: #1A1D23;
+      background: #EEF2F7;
+    }
+
+    /* ── 화면 전환 ── */
+    .screen { display: none; }
+    .screen.active { display: flex; }
+
+    /* ════════════════════════════
+       로그인 화면
+    ════════════════════════════ */
+    #screen-login {
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-wrap {
+      display: flex;
+      width: 860px;
+      min-height: 480px;
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #E2E6EE;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(30,40,80,0.07);
+    }
+
+    .brand-panel {
+      width: 340px;
+      flex-shrink: 0;
+      background: #1A3A6B;
+      padding: 48px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .brand-logo { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+    .brand-logo span { color: #7BB3F0; }
+    .brand-tagline { font-size: 13px; color: #7BB3F0; margin-top: 8px; }
+    .brand-desc-title { font-size: 16px; font-weight: 600; color: #fff; margin: 48px 0 12px; line-height: 1.5; }
+    .brand-desc-text { font-size: 13px; color: #A8C4E8; line-height: 1.8; }
+
+    .brand-footer { font-size: 11px; color: #5A7EA8; margin-top: 40px; line-height: 1.7; }
+
+    .form-panel {
+      flex: 1; padding: 48px 44px;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .form-title { font-size: 20px; font-weight: 600; color: #1A1D23; margin-bottom: 6px; }
+    .form-sub { font-size: 13px; color: #7A8399; margin-bottom: 32px; }
+
+    .alert-bar {
+      background: #FFF3CD; border: 1px solid #F0D070;
+      border-radius: 8px; padding: 10px 14px;
+      font-size: 12px; color: #7A5800;
+      margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+    }
+
+    .field { margin-bottom: 18px; }
+    .field-label { font-size: 12px; font-weight: 500; color: #4A5168; margin-bottom: 6px; display: block; }
+    .field-input {
+      width: 100%; height: 42px;
+      border: 1px solid #D8DCE8; border-radius: 8px;
+      padding: 0 14px; font-size: 14px; color: #1A1D23;
+      background: #FAFBFD; outline: none;
+      transition: border-color 0.15s, background 0.15s;
+      font-family: inherit;
+    }
+    .field-input:focus { border-color: #378ADD; background: #fff; }
+    .field-input::placeholder { color: #B0B8CC; }
+
+    .field-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .check-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #4A5168; cursor: pointer; }
+    .check-label input { accent-color: #1A3A6B; }
+    .forgot-link { font-size: 12px; color: #378ADD; cursor: pointer; }
+
+    .error-msg {
+      display: none;
+      background: #FFECEC; border: 1px solid #F7BABA;
+      border-radius: 8px; padding: 10px 14px;
+      font-size: 12px; color: #A32D2D;
+      margin-bottom: 16px;
+    }
+    .error-msg.show { display: block; }
+
+    .login-btn {
+      width: 100%; height: 44px;
+      background: #1A3A6B; color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: background 0.15s;
+      font-family: inherit;
+    }
+    .login-btn:hover { background: #142d55; }
+    .login-btn:active { background: #0e2040; }
+
+    .divider {
+      display: flex; align-items: center;
+      gap: 12px; margin: 20px 0;
+      font-size: 12px; color: #B0B8CC;
+    }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #E8EAF0; }
+
+    .role-btns { display: flex; gap: 8px; }
+    .role-btn {
+      flex: 1; height: 38px;
+      background: #F4F6F9; border: 1px solid #E2E6EE;
+      border-radius: 8px; font-size: 12px; font-weight: 500;
+      color: #4A5168; cursor: pointer; font-family: inherit;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .role-btn:hover { background: #EAF1FB; border-color: #378ADD; color: #185FA5; }
+
+    .form-footer { margin-top: 28px; font-size: 11px; color: #A0A8BB; text-align: center; line-height: 1.7; }
+
+    /* ════════════════════════════
+       홈 화면
+    ════════════════════════════ */
+    #screen-home {
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .gnb {
+      background: #1A3A6B;
+      border-bottom: none;
+      padding: 0 24px;
+      display: flex; align-items: center;
+      height: 52px; flex-shrink: 0;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .gnb-logo { font-size: 16px; font-weight: 700; color: #fff; margin-right: 32px; letter-spacing: -0.3px; }
+    .gnb-logo span { color: #7BB3F0; }
+    .gnb-nav { display: flex; gap: 2px; flex: 1; }
+    .gnb-nav a {
+      padding: 6px 14px; border-radius: 8px;
+      font-size: 14px; color: #A8C4E8;
+      cursor: pointer; text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+    }
+    .gnb-nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .gnb-nav a.active { background: rgba(255,255,255,0.15); color: #fff; font-weight: 600; }
+    .gnb-right { display: flex; align-items: center; gap: 12px; }
+    .gnb-user { font-size: 14px; color: #A8C4E8; }
+    .gnb-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: rgba(255,255,255,0.15); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600;
+    }
+    .logout-btn {
+      font-size: 13px; color: #A8C4E8;
+      background: none; border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px; padding: 4px 10px;
+      cursor: pointer; font-family: inherit;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .logout-btn:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
+
+    .home-body { display: flex; flex: 1; min-height: calc(100vh - 52px); }
+
+    .sidebar {
+      width: 200px; flex-shrink: 0;
+      background: #142D55;
+      border-right: none;
+      padding: 16px 12px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .sidebar-section { font-size: 12px; color: rgba(255,255,255,0.35); padding: 8px 8px 4px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .sidebar-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 8px;
+      font-size: 14px; color: #A8C4E8;
+      cursor: pointer; transition: background 0.15s, color 0.15s;
+    }
+    .sidebar-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .sidebar-item.active { background: rgba(255,255,255,0.15); color: #fff; font-weight: 600; }
+    .sidebar-badge {
+      margin-left: auto; background: #E24B4A; color: #fff;
+      font-size: 11px; font-weight: 600;
+      padding: 1px 6px; border-radius: 10px;
+    }
+
+    .main { flex: 1; overflow-y: auto; padding: 28px 32px; }
+
+    .greeting-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+    .greeting-title { font-size: 22px; font-weight: 600; color: #1A1D23; }
+    .greeting-sub { font-size: 14px; color: #7A8399; margin-top: 4px; }
+    .date-pill {
+      font-size: 13px; color: #7A8399;
+      background: #fff; border: 1px solid #E2E6EE;
+      padding: 6px 14px; border-radius: 8px;
+    }
+
+    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 28px; }
+    .summary-card {
+      background: #fff; border: 1px solid #E2E6EE;
+      border-radius: 12px; padding: 18px 22px;
+      cursor: pointer; transition: box-shadow 0.15s;
+      border-left: 4px solid transparent;
+    }
+    .summary-card:hover { box-shadow: 0 2px 12px rgba(30,40,80,0.07); }
+    .summary-card.danger  { border-left-color: #E24B4A; }
+    .summary-card.warning { border-left-color: #EF9F27; }
+    .summary-card.info    { border-left-color: #378ADD; }
+    .card-label { font-size: 13px; color: #7A8399; margin-bottom: 8px; }
+    .card-value { font-size: 28px; font-weight: 700; }
+    .card-value.danger  { color: #A32D2D; }
+    .card-value.warning { color: #854F0B; }
+    .card-value.info    { color: #185FA5; }
+    .card-desc { font-size: 13px; color: #B0B8CC; margin-top: 4px; }
+
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .section-title { font-size: 16px; font-weight: 600; color: #1A1D23; }
+    .section-link { font-size: 13px; color: #378ADD; cursor: pointer; }
+
+    .table-card {
+      background: #fff; border: 1px solid #E2E6EE;
+      border-radius: 12px; overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th {
+      text-align: left; padding: 10px 18px;
+      font-size: 12px; font-weight: 600; color: #7A8399;
+      background: #F8F9FB; border-bottom: 1px solid #E2E6EE;
+      text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    td { padding: 13px 18px; border-bottom: 1px solid #F0F2F6; color: #1A1D23; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #F8F9FB; }
+    .patient-name { color: #185FA5; font-weight: 600; cursor: pointer; }
+    .patient-name:hover { text-decoration: underline; }
+    .mono { font-family: 'Courier New', monospace; font-size: 13px; color: #7A8399; }
+    .status-badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .s-danger  { background: #FCEBEB; color: #A32D2D; }
+    .s-ok      { background: #EAF3DE; color: #3B6D11; }
+    .s-warning { background: #FAEEDA; color: #854F0B; }
+
+    /* ── 콘텐츠 패널 전환 ── */
+    .content-panel { display: none; }
+    .content-panel.active { display: block; }
+
+    /* ── 환자 검색 ── */
+    .search-layout { display: flex; gap: 24px; align-items: flex-start; }
+    .search-col { width: 460px; flex-shrink: 0; }
+    .search-box { position: relative; margin-bottom: 20px; }
+    .search-box svg {
+      position: absolute; left: 14px; top: 50%;
+      transform: translateY(-50%);
+      color: #7A8399; pointer-events: none;
+    }
+    .search-input {
+      width: 100%; height: 48px;
+      border: 2px solid #378ADD; border-radius: 10px;
+      padding: 0 16px 0 44px;
+      font-size: 15px; color: #1A1D23;
+      background: #fff; outline: none;
+      font-family: inherit; transition: border-color 0.15s;
+    }
+    .search-input:focus { border-color: #185FA5; }
+    .search-input::placeholder { color: #B0B8CC; }
+
+    .search-result-count { font-size: 14px; color: #378ADD; font-weight: 600; margin-bottom: 12px; }
+
+    .search-row { cursor: pointer; }
+    .search-row:hover td { background: #F0F6FC; }
+    .search-row.selected td { background: #EAF3FB; }
+    .search-row.selected td:first-child { border-left: 3px solid #378ADD; padding-left: 15px; }
+
+    /* ── 빈 결과 ── */
+    .empty-state {
+      display: flex; flex-direction: column;
+      align-items: center; padding: 60px 0; gap: 14px;
+    }
+    .empty-icon {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: #F0F2F6;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px; color: #C0C8D8;
+    }
+    .empty-title { font-size: 18px; font-weight: 600; color: #1A1D23; }
+    .empty-sub { font-size: 14px; color: #7A8399; }
+    .empty-hints { display: flex; gap: 8px; margin-top: 4px; }
+    .empty-hint {
+      background: #F4F6F9; border: 1px solid #E2E6EE;
+      border-radius: 20px; padding: 5px 14px;
+      font-size: 13px; color: #7A8399;
+    }
+    .empty-retry {
+      background: #1A3A6B; color: #fff;
+      border: none; border-radius: 8px;
+      padding: 11px 32px; font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: inherit; margin-top: 4px;
+      transition: background 0.15s;
+    }
+    .empty-retry:hover { background: #142D55; }
+
+    /* ── 환자 상세 패널 ── */
+    .detail-col {
+      flex: 1;
+      background: #fff;
+      border: 1px solid #E2E6EE;
+      border-radius: 12px;
+      min-height: 480px;
+      display: flex; flex-direction: column;
+    }
+    .detail-placeholder {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 12px; color: #B0B8CC;
+    }
+    .detail-placeholder-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: #F4F6F9;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px;
+    }
+    .detail-placeholder-text { font-size: 14px; }
+
+    .detail-content { display: none; flex-direction: column; height: 100%; }
+    .detail-content.visible { display: flex; }
+
+    .detail-header {
+      background: #1A3A6B; color: #fff;
+      padding: 20px 24px;
+      border-radius: 12px 12px 0 0;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .detail-avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .detail-name { font-size: 20px; font-weight: 700; }
+    .detail-meta { font-size: 13px; color: #A8C4E8; margin-top: 3px; }
+    .detail-status-badge {
+      margin-left: auto; padding: 5px 12px;
+      border-radius: 20px; font-size: 13px; font-weight: 600;
+    }
+    .detail-body { padding: 20px 24px; flex: 1; overflow-y: auto; }
+    .detail-section-label {
+      font-size: 11px; font-weight: 600; color: #7A8399;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin: 16px 0 8px;
+    }
+    .detail-section-label:first-child { margin-top: 0; }
+    .detail-row {
+      display: flex; justify-content: space-between;
+      padding: 9px 0; border-bottom: 1px solid #F0F2F6;
+      font-size: 14px;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-key { color: #7A8399; }
+    .detail-val { color: #1A1D23; font-weight: 500; }
+    .detail-val.danger { color: #A32D2D; font-weight: 600; }
+    .detail-val.warning { color: #854F0B; font-weight: 600; }
+    .detail-val.ok { color: #3B6D11; }
+
+    .detail-footer {
+      padding: 16px 24px;
+      border-top: 1px solid #F0F2F6;
+      display: flex; gap: 8px;
+    }
+    .detail-btn {
+      flex: 1; height: 38px; border-radius: 8px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .detail-btn-primary {
+      background: #1A3A6B; color: #fff; border: none;
+    }
+    .detail-btn-primary:hover { background: #142D55; }
+    .detail-btn-secondary {
+      background: #fff; color: #378ADD;
+      border: 1px solid #378ADD;
+    }
+    .detail-btn-secondary:hover { background: #EAF1FB; }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════ 로그인 화면 ══════════ -->
+  <div id="screen-login" class="screen active">
+    <div class="login-wrap">
+      <div class="brand-panel">
+        <div>
+          <div class="brand-logo">CD<span>SS</span></div>
+          <div class="brand-tagline">Clinical Decision Support System</div>
+          <div class="brand-desc-title">의료진 임상<br>의사결정 보조 시스템</div>
+          <div class="brand-desc-text">
+            MIMIC-IV 기반 ICU 환자<br>
+            AKI 48시간 전 예측 · 약물 상호작용<br>
+            실시간 경고 · AI 위험도 분석
+          </div>
+        </div>
+        <div class="brand-footer">
+          ※ 본 시스템은 의료진의 판단을 보조하며<br>
+          최종 결정은 담당 의사에게 있습니다.
+        </div>
+      </div>
+
+      <div class="form-panel">
+        <div class="form-title">로그인</div>
+        <div class="form-sub">병원 계정으로 로그인하세요</div>
+
+        <div class="alert-bar">
+          ⚠ 로그인 후 확인하세요
+        </div>
+
+        <div id="error-msg" class="error-msg">
+          아이디 또는 비밀번호가 올바르지 않습니다.
+        </div>
+
+        <div class="field">
+          <label class="field-label">직원 ID / 의사 번호</label>
+          <input id="input-id" class="field-input" type="text" placeholder="예: DR-0042" />
+        </div>
+        <div class="field">
+          <label class="field-label">비밀번호</label>
+          <input id="input-pw" class="field-input" type="password" placeholder="비밀번호 입력" />
+        </div>
+
+        <div class="field-row">
+          <label class="check-label">
+            <input type="checkbox" checked /> 로그인 상태 유지
+          </label>
+          <span class="forgot-link">비밀번호 찾기</span>
+        </div>
+
+        <button class="login-btn" onclick="doLogin()">로그인 →</button>
+
+        <div class="divider">또는 직종으로 빠른 접속 (데모)</div>
+        <div class="role-btns">
+          <button class="role-btn" onclick="demoLogin('의사')">의사</button>
+          <button class="role-btn" onclick="demoLogin('간호사')">간호사</button>
+          <button class="role-btn" onclick="demoLogin('관리자')">관리자</button>
+        </div>
+
+        <div class="form-footer">
+          본 시스템은 인가된 의료진 전용입니다.<br>
+          무단 접근 시 관련 법령에 따라 처벌받을 수 있습니다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 홈 화면 ══════════ -->
+  <div id="screen-home" class="screen">
+    <nav class="gnb">
+      <div class="gnb-logo">CD<span>SS</span></div>
+      <div class="gnb-nav" id="gnb-nav">
+        <a class="active" onclick="switchPanel('dashboard',this)">홈</a>
+        <a onclick="switchPanel('search',this)">환자 검색</a>
+        <a onclick="switchPanel('prescription',this)">처방 관리</a>
+        <a onclick="switchPanel('lab',this)">검사 결과</a>
+        <a onclick="switchPanel('cardio',this)">카디오 필터</a>
+      </div>
+      <div class="gnb-right">
+        <span class="gnb-user" id="gnb-username"></span>
+        <div class="gnb-avatar" id="gnb-avatar"></div>
+        <button class="logout-btn" onclick="doLogout()">로그아웃</button>
+      </div>
+    </nav>
+
+    <div class="home-body">
+      <aside class="sidebar">
+        <div class="sidebar-section">메뉴</div>
+        <div class="sidebar-item active">&#9632;&nbsp; 대시보드</div>
+        <div class="sidebar-item">&#9632;&nbsp; 최근 환자</div>
+        <div class="sidebar-item">&#9632;&nbsp; 알림 <span class="sidebar-badge">2</span></div>
+        <div class="sidebar-item">&#9632;&nbsp; 진료 대기</div>
+      </aside>
+
+      <main class="main">
+        <!-- 대시보드 패널 -->
+        <div id="panel-dashboard" class="content-panel active">
+        <div class="greeting-row">
+          <div>
+            <div class="greeting-title">안녕하세요, <span id="home-username"></span></div>
+            <div class="greeting-sub" id="home-dept"></div>
+          </div>
+          <div class="date-pill" id="home-date"></div>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-card danger">
+            <div class="card-label">활성 경고</div>
+            <div class="card-value danger">2건</div>
+            <div class="card-desc">즉시 확인 필요</div>
+          </div>
+          <div class="summary-card warning">
+            <div class="card-label">진료 대기</div>
+            <div class="card-value warning">5명</div>
+            <div class="card-desc">대기 중</div>
+          </div>
+          <div class="summary-card info">
+            <div class="card-label">최근 환자</div>
+            <div class="card-value info">3명</div>
+            <div class="card-desc">오늘 방문</div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <div class="section-title">최근 환자</div>
+          <div class="section-link">전체 보기 →</div>
+        </div>
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>이름</th>
+                <th>등록번호</th>
+                <th>나이/성별</th>
+                <th>방문일</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="patient-name">고윤하</span></td>
+                <td><span class="mono">#123456</span></td>
+                <td>20세 여</td><td>오늘</td>
+                <td><span class="status-badge s-danger">경고 2건</span></td>
+              </tr>
+              <tr>
+                <td><span class="patient-name">음율</span></td>
+                <td><span class="mono">#234567</span></td>
+                <td>45세 남</td><td>오늘</td>
+                <td><span class="status-badge s-ok">이상 없음</span></td>
+              </tr>
+              <tr>
+                <td><span class="patient-name">미로</span></td>
+                <td><span class="mono">#043120</span></td>
+                <td>33세 여</td><td>어제</td>
+                <td><span class="status-badge s-warning">주의 1건</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </div><!-- /panel-dashboard -->
+
+        <!-- 환자 검색 패널 -->
+        <div id="panel-search" class="content-panel">
+          <div class="section-title" style="margin-bottom:20px">환자 검색</div>
+          <div class="search-layout">
+            <!-- 왼쪽: 검색 + 목록 -->
+            <div class="search-col">
+              <div class="search-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input class="search-input" id="search-input" type="text"
+                  placeholder="이름 또는 등록번호 입력"
+                  oninput="runSearch(this.value)" />
+              </div>
+              <div id="search-result-count" class="search-result-count" style="display:none"></div>
+              <div class="table-card" id="search-table-wrap" style="display:none">
+                <table>
+                  <thead>
+                    <tr><th>이름</th><th>등록번호</th><th>나이/성별</th></tr>
+                  </thead>
+                  <tbody id="search-tbody"></tbody>
+                </table>
+              </div>
+              <div class="empty-state" id="search-empty" style="display:none">
+                <div class="empty-icon">&#128269;</div>
+                <div class="empty-title">검색 결과가 없습니다</div>
+                <div class="empty-sub">등록번호 또는 이름을 다시 확인해 주세요</div>
+                <div class="empty-hints">
+                  <span class="empty-hint">이름은 2글자 이상</span>
+                  <span class="empty-hint">등록번호는 숫자만</span>
+                </div>
+                <button class="empty-retry" onclick="clearSearch()">다시 검색하기</button>
+              </div>
+            </div>
+
+            <!-- 오른쪽: 환자 상세 -->
+            <div class="detail-col" id="detail-col">
+              <div class="detail-placeholder" id="detail-placeholder">
+                <div class="detail-placeholder-icon">&#128100;</div>
+                <div class="detail-placeholder-text">환자를 선택하면 상세 정보가 표시됩니다</div>
+              </div>
+              <div class="detail-content" id="detail-content">
+                <div class="detail-header">
+                  <div class="detail-avatar" id="d-avatar"></div>
+                  <div>
+                    <div class="detail-name" id="d-name"></div>
+                    <div class="detail-meta" id="d-meta"></div>
+                  </div>
+                  <span class="detail-status-badge" id="d-status-badge"></span>
+                </div>
+                <div class="detail-body">
+                  <div class="detail-section-label">기본 정보</div>
+                  <div class="detail-row"><span class="detail-key">등록번호</span><span class="detail-val" id="d-id"></span></div>
+                  <div class="detail-row"><span class="detail-key">나이 / 성별</span><span class="detail-val" id="d-age"></span></div>
+                  <div class="detail-row"><span class="detail-key">혈액형</span><span class="detail-val" id="d-blood"></span></div>
+                  <div class="detail-row"><span class="detail-key">마지막 방문</span><span class="detail-val" id="d-visit"></span></div>
+
+                  <div class="detail-section-label">AKI 위험도</div>
+                  <div class="detail-row"><span class="detail-key">48h 예측 위험도</span><span class="detail-val" id="d-aki"></span></div>
+                  <div class="detail-row"><span class="detail-key">Creatinine</span><span class="detail-val" id="d-crea"></span></div>
+                  <div class="detail-row"><span class="detail-key">eGFR</span><span class="detail-val" id="d-egfr"></span></div>
+                  <div class="detail-row"><span class="detail-key">BUN</span><span class="detail-val" id="d-bun"></span></div>
+
+                  <div class="detail-section-label">경고</div>
+                  <div class="detail-row"><span class="detail-key">활성 경고</span><span class="detail-val" id="d-alert"></span></div>
+                </div>
+                <div class="detail-footer">
+                  <button class="detail-btn detail-btn-primary">환자 진료 열기</button>
+                  <button class="detail-btn detail-btn-secondary">검사 결과 보기</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /panel-search -->
+
+        <!-- 처방 관리 패널 (준비중) -->
+        <div id="panel-prescription" class="content-panel">
+          <div class="section-title" style="margin-bottom:12px">처방 관리</div>
+          <div style="color:#7A8399;font-size:14px">준비 중입니다.</div>
+        </div>
+
+        <!-- 검사 결과 패널 (준비중) -->
+        <div id="panel-lab" class="content-panel">
+          <div class="section-title" style="margin-bottom:12px">검사 결과</div>
+          <div style="color:#7A8399;font-size:14px">준비 중입니다.</div>
+        </div>
+
+        <!-- 카디오 필터 패널 (준비중) -->
+        <div id="panel-cardio" class="content-panel">
+          <div class="section-title" style="margin-bottom:12px">카디오 필터</div>
+          <div style="color:#7A8399;font-size:14px">준비 중입니다.</div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const days = ['일','월','화','수','목','금','토'];
+    function updateClock() {
+      const now = new Date();
+      const date = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} (${days[now.getDay()]})`;
+      const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+      const el = document.getElementById('home-date');
+      if (el) el.textContent = `${date} ${time}`;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // 더미 계정 (실제 백엔드 연동 전 테스트용)
+    const ACCOUNTS = {
+      'DR-0042': { pw: '1234', name: '김철수 선생님', dept: '외래', role: '의사', avatar: '김' },
+      'NR-0010': { pw: '1234', name: '간호사 님',    dept: '중환자실',   role: '간호사', avatar: '이' },
+      'AD-0001': { pw: '1234', name: '관리자 님',    dept: '시스템 관리', role: '관리자', avatar: '김' },
+    };
+
+    function goHome(user) {
+      document.getElementById('gnb-username').textContent = `${user.dept} · ${user.name}`;
+      document.getElementById('gnb-avatar').textContent = user.avatar;
+      document.getElementById('home-username').textContent = user.name;
+      document.getElementById('home-dept').textContent = user.dept;
+      document.getElementById('screen-login').classList.remove('active');
+      document.getElementById('screen-home').classList.add('active');
+    }
+
+    function doLogin() {
+      const id  = document.getElementById('input-id').value.trim();
+      const pw  = document.getElementById('input-pw').value.trim();
+      const err = document.getElementById('error-msg');
+      const user = ACCOUNTS[id];
+      if (user && user.pw === pw) {
+        err.classList.remove('show');
+        goHome(user);
+      } else {
+        err.classList.add('show');
+      }
+    }
+
+    function demoLogin(role) {
+      const map = { '의사': 'DR-0042', '간호사': 'NR-0010', '관리자': 'AD-0001' };
+      goHome(ACCOUNTS[map[role]]);
+    }
+
+    function doLogout() {
+      document.getElementById('input-id').value = '';
+      document.getElementById('input-pw').value = '';
+      document.getElementById('error-msg').classList.remove('show');
+      document.getElementById('screen-home').classList.remove('active');
+      document.getElementById('screen-login').classList.add('active');
+    }
+
+    // ── 패널 전환 ──
+    function switchPanel(name, btn) {
+      document.querySelectorAll('#gnb-nav a').forEach(a => a.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.content-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('panel-' + name).classList.add('active');
+      if (name === 'search') {
+        setTimeout(() => document.getElementById('search-input').focus(), 50);
+      }
+    }
+
+    // ── 환자 검색 더미 데이터 ──
+    const PATIENTS = [
+      { name: '고윤하', id: '123456', age: 20, sex: '여', blood: 'A+', visit: '오늘',  aki: { label: '고위험', cls: 'danger',  val: '78%' }, crea: { v: '2.4 mg/dL', cls: 'danger'  }, egfr: { v: '31 mL/min', cls: 'danger'  }, bun: { v: '42 mg/dL', cls: 'warning' }, alert: { v: '경고 2건', cls: 'danger'  } },
+      { name: '고윤재', id: '098234', age: 45, sex: '남', blood: 'O-', visit: '어제',  aki: { label: '중위험', cls: 'warning', val: '45%' }, crea: { v: '1.6 mg/dL', cls: 'warning' }, egfr: { v: '58 mL/min', cls: 'warning' }, bun: { v: '28 mg/dL', cls: 'ok'      }, alert: { v: '주의 1건', cls: 'warning' } },
+      { name: '고윤서', id: '203041', age: 33, sex: '여', blood: 'B+', visit: '2일 전', aki: { label: '저위험', cls: 'ok',      val: '12%' }, crea: { v: '0.9 mg/dL', cls: 'ok'      }, egfr: { v: '92 mL/min', cls: 'ok'      }, bun: { v: '18 mg/dL', cls: 'ok'      }, alert: { v: '이상 없음', cls: 'ok'    } },
+      { name: '음율',   id: '234567', age: 28, sex: '남', blood: 'AB+',visit: '오늘',  aki: { label: '저위험', cls: 'ok',      val: '8%'  }, crea: { v: '1.0 mg/dL', cls: 'ok'      }, egfr: { v: '88 mL/min', cls: 'ok'      }, bun: { v: '15 mg/dL', cls: 'ok'      }, alert: { v: '이상 없음', cls: 'ok'    } },
+      { name: '미로',   id: '043120', age: 55, sex: '여', blood: 'A-', visit: '어제',  aki: { label: '중위험', cls: 'warning', val: '52%' }, crea: { v: '1.8 mg/dL', cls: 'warning' }, egfr: { v: '48 mL/min', cls: 'warning' }, bun: { v: '33 mg/dL', cls: 'warning' }, alert: { v: '주의 1건', cls: 'warning' } },
+      { name: '홍길동', id: '310021', age: 62, sex: '남', blood: 'O+', visit: '3일 전', aki: { label: '고위험', cls: 'danger',  val: '83%' }, crea: { v: '3.1 mg/dL', cls: 'danger'  }, egfr: { v: '22 mL/min', cls: 'danger'  }, bun: { v: '58 mg/dL', cls: 'danger'  }, alert: { v: '경고 3건', cls: 'danger'  } },
+      { name: '김지수', id: '410052', age: 37, sex: '여', blood: 'B-', visit: '오늘',  aki: { label: '저위험', cls: 'ok',      val: '15%' }, crea: { v: '0.8 mg/dL', cls: 'ok'      }, egfr: { v: '97 mL/min', cls: 'ok'      }, bun: { v: '14 mg/dL', cls: 'ok'      }, alert: { v: '이상 없음', cls: 'ok'    } },
+      { name: '이준호', id: '501133', age: 49, sex: '남', blood: 'A+', visit: '2일 전', aki: { label: '중위험', cls: 'warning', val: '39%' }, crea: { v: '1.5 mg/dL', cls: 'warning' }, egfr: { v: '63 mL/min', cls: 'ok'      }, bun: { v: '25 mg/dL', cls: 'ok'      }, alert: { v: '이상 없음', cls: 'ok'    } },
+    ];
+
+    function runSearch(q) {
+      const keyword = q.trim();
+      const countEl = document.getElementById('search-result-count');
+      const tableWrap = document.getElementById('search-table-wrap');
+      const tbody = document.getElementById('search-tbody');
+      const empty = document.getElementById('search-empty');
+
+      if (!keyword) {
+        countEl.style.display = 'none';
+        tableWrap.style.display = 'none';
+        empty.style.display = 'none';
+        hideDetail();
+        return;
+      }
+
+      const results = PATIENTS.filter(p =>
+        p.name.includes(keyword) || p.id.includes(keyword.replace(/\D/g, ''))
+      );
+
+      if (results.length === 0) {
+        countEl.style.display = 'none';
+        tableWrap.style.display = 'none';
+        empty.style.display = 'flex';
+        hideDetail();
+        return;
+      }
+
+      empty.style.display = 'none';
+      countEl.style.display = 'block';
+      countEl.textContent = `검색 결과  ${results.length}건`;
+      tbody.innerHTML = results.map((p, i) => `
+        <tr class="search-row" onclick="selectPatient(this, '${p.id}')">
+          <td>${p.name}</td>
+          <td><span class="mono">#${p.id}</span></td>
+          <td>${p.age}세 ${p.sex}</td>
+        </tr>`).join('');
+      tableWrap.style.display = 'block';
+    }
+
+    function hideDetail() {
+      document.getElementById('detail-placeholder').style.display = 'flex';
+      document.getElementById('detail-content').classList.remove('visible');
+    }
+
+    function selectPatient(row, patientId) {
+      document.querySelectorAll('.search-row').forEach(r => r.classList.remove('selected'));
+      row.classList.add('selected');
+
+      const p = PATIENTS.find(x => x.id === patientId);
+      if (!p) return;
+
+      document.getElementById('d-avatar').textContent = p.name[0];
+      document.getElementById('d-name').textContent = p.name;
+      document.getElementById('d-meta').textContent = `등록번호 #${p.id} · ${p.age}세 ${p.sex}`;
+      document.getElementById('d-id').textContent = `#${p.id}`;
+      document.getElementById('d-age').textContent = `${p.age}세 / ${p.sex === '여' ? '여성' : '남성'}`;
+      document.getElementById('d-blood').textContent = p.blood;
+      document.getElementById('d-visit').textContent = p.visit;
+
+      const badge = document.getElementById('d-status-badge');
+      const badgeMap = { danger: { bg:'#FCEBEB', color:'#A32D2D' }, warning: { bg:'#FAEEDA', color:'#854F0B' }, ok: { bg:'#EAF3DE', color:'#3B6D11' } };
+      const bc = badgeMap[p.aki.cls];
+      badge.textContent = `AKI ${p.aki.label}`;
+      badge.style.background = bc.bg; badge.style.color = bc.color;
+
+      const setVal = (id, obj) => {
+        const el = document.getElementById(id);
+        el.textContent = obj.v || obj.val || obj.label;
+        el.className = `detail-val ${obj.cls}`;
+      };
+      setVal('d-aki',   { v: `${p.aki.label} (${p.aki.val})`, cls: p.aki.cls });
+      setVal('d-crea',  p.crea);
+      setVal('d-egfr',  p.egfr);
+      setVal('d-bun',   p.bun);
+      setVal('d-alert', p.alert);
+
+      document.getElementById('detail-placeholder').style.display = 'none';
+      document.getElementById('detail-content').classList.add('visible');
+    }
+
+    function clearSearch() {
+      document.getElementById('search-input').value = '';
+      runSearch('');
+      document.getElementById('search-input').focus();
+    }
+
+    // Enter 키 로그인
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && document.getElementById('screen-login').classList.contains('active')) {
+        doLogin();
+      }
+    });
+  </script>
+</body>
+</html>
